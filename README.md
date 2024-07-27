@@ -33,7 +33,7 @@ Managedrink là một ứng dụng quản lý đồ uống được xây dựng 
 #Cấu hình cơ sở dữ liệu:
 
 Cập nhật thông tin kết nối cơ sở dữ liệu trong file src/main/resources/application.properties:
-${DB_PASSWORD} => cau hình trong biến môi trường của windown
+- ${DB_PASSWORD} => cau hình trong biến môi trường của windown
 
 spring.datasource.url=jdbc:mysql://localhost:3306/managedrink
 spring.datasource.password=${DB_PASSWORD}
@@ -45,16 +45,16 @@ Cấu hình bảo mật:
 
 Cấu hình JWT và các chính sách bảo mật trong class SecurityConfig.
 
-#Phụ thuộc
-#Dự án sử dụng các phụ thuộc sau:
+# Phụ thuộc
+- Dự án sử dụng các phụ thuộc sau:
 
-1-Spring Boot Starter Web
-2-Spring Boot Starter Data JPA
-3-Spring Boot Starter Security
-4-MySQL Connector
-5-Lombok
-6-JWT
-7-Log4j
+1- Spring Boot Starter Web
+2- Spring Boot Starter Data JPA
+3- Spring Boot Starter Security
+4- MySQL Connector
+5- Lombok
+6- JWT
+7- Log4j
 
 Đóng góp
 Nếu bạn muốn đóng góp cho dự án này, vui lòng tạo pull request và mô tả các thay đổi của bạn. Chúng tôi rất mong nhận được sự đóng góp của bạn!
