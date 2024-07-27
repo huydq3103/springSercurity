@@ -35,12 +35,12 @@ Managedrink là một ứng dụng quản lý đồ uống được xây dựng 
 Cập nhật thông tin kết nối cơ sở dữ liệu trong file src/main/resources/application.properties:
 - ${DB_PASSWORD} => cau hình trong biến môi trường của windown
 
-spring.datasource.url=jdbc:mysql://localhost:3306/managedrink
-spring.datasource.password=${DB_PASSWORD}
-spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
-spring.jpa.show-sql= true
-jwt.secret = **${JWT_SECRET}**
-jwt.expiration = **${JWT_EXPIRE}**
+- spring.datasource.url=jdbc:mysql://localhost:3306/managedrink
+- spring.datasource.password=${DB_PASSWORD}
+- spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+- spring.jpa.show-sql= true
+- jwt.secret = **${JWT_SECRET}**
+- jwt.expiration = **${JWT_EXPIRE}**
 Cấu hình bảo mật:
 
 Cấu hình JWT và các chính sách bảo mật trong class SecurityConfig.
