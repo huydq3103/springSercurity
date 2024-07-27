@@ -48,13 +48,13 @@ Cấu hình JWT và các chính sách bảo mật trong class SecurityConfig.
 # Phụ thuộc
 - Dự án sử dụng các phụ thuộc sau:
 
-1- Spring Boot Starter Web
-2- Spring Boot Starter Data JPA
-3- Spring Boot Starter Security
-4- MySQL Connector
-5- Lombok
-6- JWT
-7- Log4j
+- Spring Boot Starter Web
+- Spring Boot Starter Data JPA
+- Spring Boot Starter Security
+- MySQL Connector
+- Lombok
+- JWT
+- Log4j
 
 Đóng góp
 Nếu bạn muốn đóng góp cho dự án này, vui lòng tạo pull request và mô tả các thay đổi của bạn. Chúng tôi rất mong nhận được sự đóng góp của bạn!
