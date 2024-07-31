@@ -57,6 +57,12 @@ public class DataInitializer {
      *
      * @throws NotFoundException nếu bất kỳ quyền nào liên kết với vai trò không được tìm thấy trong cơ sở dữ liệu.
      */
+
+    /**
+     * Enum Tính Chất Bất Biến: Enum là cấu trúc không thay đổi trong mã nguồn của bạn, do đó, khi bạn
+     * thay đổi nó và chạy lại ứng dụng, ứng dụng sẽ sử dụng các giá trị mới
+     * của enum để cập nhật cơ sở dữ liệu.
+     */
     @Transactional
     private void updateRoles() {
         for (RolePermissionEnum rolePermission : RolePermissionEnum.values()) {

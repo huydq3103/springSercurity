@@ -101,11 +101,24 @@ public class JwtUtil {
      * @param userDetails Chi tiết người dùng để tạo token.
      * @return Token JWT được tạo.
      */
-    public String generateToken(UserDetails userDetails) {
+    public String generateToken(UserDetails userDetails, boolean authMethod) {
         ValidationUtils.validateObject(userDetails);
-
         Map<String, Object> claims = new HashMap<>();
+
+        claims.put("isLdap", authMethod);
+
         return createToken(claims, userDetails.getUsername());
+    }
+
+    public boolean extractLdap(String token) {
+        // Xác thực token và lấy claims
+        Claims claims = Jwts.parser()
+                .setSigningKey(SECRET_KEY)
+                .parseClaimsJws(token)
+                .getBody();
+
+        // Trích xuất giá trị của "auth_method"
+        return (boolean) claims.get("isLdap");
     }
 
     /**

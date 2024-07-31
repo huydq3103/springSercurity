@@ -2,18 +2,24 @@ package com.managedrink.until.configs;
 
 import com.managedrink.entity.PermissionEntity;
 import com.managedrink.jwt.JwtRequestFilter;
+import com.managedrink.ldap.LdapAuthenticationService;
 import com.managedrink.services.implement.CustomUserDetailsService;
 import com.managedrink.services.implement.PermissionServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.ldap.AuthenticationException;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -35,6 +41,9 @@ public class SecurityConfig {
 
     @Autowired
     private PermissionServiceImpl permissionService;
+
+    @Autowired
+    private LdapAuthenticationService ldapAuthenticationService;
 
     public SecurityConfig(CustomUserDetailsService customUserDetailsService, JwtRequestFilter jwtRequestFilter,
                           PermissionServiceImpl permissionService) {
@@ -66,8 +75,28 @@ public class SecurityConfig {
 
                     auth.anyRequest().authenticated();
                 })
-                .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class)
+                .authenticationProvider(ldapAuthenticationProvider()); // them moi
         return http.build();
+    }
+
+    // them moi
+    @Bean
+    public AuthenticationProvider ldapAuthenticationProvider() {
+        return new AuthenticationProvider() {
+            @Override
+            public Authentication authenticate(Authentication authentication) throws AuthenticationException {
+                String username = authentication.getName();
+                String password = authentication.getCredentials().toString();
+                UserDetails userDetails = ldapAuthenticationService.authenticateLdapUser(username, password);
+                return new UsernamePasswordAuthenticationToken(userDetails, password, userDetails.getAuthorities());
+            }
+
+            @Override
+            public boolean supports(Class<?> authentication) {
+                return authentication.equals(UsernamePasswordAuthenticationToken.class);
+            }
+        };
     }
 
 

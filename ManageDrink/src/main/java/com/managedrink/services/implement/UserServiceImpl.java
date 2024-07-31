@@ -4,6 +4,7 @@ import com.managedrink.dto.UserDTO;
 import com.managedrink.entity.RoleEntity;
 import com.managedrink.entity.UserEntity;
 import com.managedrink.jwt.JwtUtil;
+import com.managedrink.ldap.LdapAuthenticationService;
 import com.managedrink.payload.request.LoginRequest;
 import com.managedrink.payload.request.SignUpRequest;
 import com.managedrink.payload.response.JwtResponse;
@@ -68,7 +69,7 @@ public class UserServiceImpl implements IUserService {
         UserEntity user = new UserEntity();
 
         // Gán role mặc định cho user mới
-        RoleEntity userRole = roleRepository.findByName("ROLE_ADMIN")
+        RoleEntity userRole = roleRepository.findByName("ROLE_USER")
                 .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
 
 
@@ -88,23 +89,39 @@ public class UserServiceImpl implements IUserService {
      * @param loginRequest yêu cầu đăng nhập của người dùng.
      * @return phản hồi chứa token JWT.
      */
-    @Override
+
+    @Autowired
+    private LdapAuthenticationService ldapAuthenticationService;
+
     public JwtResponse authenticateUser(LoginRequest loginRequest) {
-
         ValidationUtils.validateObject(loginRequest);
+        boolean isLdap = false;
+        UserDetails userDetails;
 
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        loginRequest.getUsername(),
-                        loginRequest.getPassword()
-                )
-        );
+        // them moi
+        if (loginRequest.isLdap()) {
+            // Xác thực LDAP
+            userDetails = ldapAuthenticationService.authenticateLdapUser(
+                    loginRequest.getUsername(), loginRequest.getPassword());
+            isLdap = true;
+        } else {
+            // Xác thực thông thường
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            loginRequest.getUsername(),
+                            loginRequest.getPassword()
+                    )
+            );
+            userDetails = (UserDetails) authentication.getPrincipal();
+        }
 
-        SecurityContextHolder.getContext().setAuthentication(authentication);
+        // Tạo JWT token
+        String jwt = jwtUtil.generateToken(userDetails, isLdap);
 
-        UserDetails customUserDetails = (UserDetails) authentication.getPrincipal();
-        String jwt = jwtUtil.generateToken(customUserDetails);
-
+        // Đặt xác thực vào SecurityContext
+        UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                userDetails, null, userDetails.getAuthorities());
+        SecurityContextHolder.getContext().setAuthentication(authToken);
 
         return new JwtResponse(jwt);
     }

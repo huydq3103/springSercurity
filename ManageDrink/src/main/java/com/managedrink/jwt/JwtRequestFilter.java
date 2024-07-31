@@ -1,11 +1,13 @@
 package com.managedrink.jwt;
 
+import com.managedrink.ldap.LdapAuthenticationService;
 import com.managedrink.services.implement.CustomUserDetailsService;
 import com.managedrink.until.constants.CommonConstant;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -17,6 +19,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 
 @Component
+@Slf4j
 public class JwtRequestFilter extends OncePerRequestFilter {
 
     @Autowired
@@ -24,6 +27,9 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 
     @Autowired
     private CustomUserDetailsService customUserDetailsService;
+
+    @Autowired
+    private LdapAuthenticationService ldapAuthenticationService;
 
     /**
      * Same contract as for {@code doFilter}, but guaranteed to be
@@ -45,23 +51,41 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         String username = null;
         String jwt = null;
 
+        boolean isLdap = false;
+
+
         if (authorizationHeader != null && authorizationHeader.startsWith(CommonConstant.BEARER)) {
             jwt = authorizationHeader.substring(CommonConstant.SEVEN);
             username = jwtUtil.extractUsername(jwt);
+            isLdap = jwtUtil.extractLdap(jwt);
+
+            log.info("JWT Token: {}", jwt);
+            log.info("Extracted Username: {}", username);
+            log.info("Is LDAP User: {}", isLdap);
         }
 
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+            UserDetails userDetails;
 
-            UserDetails userDetails = this.customUserDetailsService.loadUserByUsername(username);
+            if (isLdap) {
+                userDetails = ldapAuthenticationService.loadLdapUserDetails(username);
+            } else {
+                userDetails = customUserDetailsService.loadUserByUsername(username);
+            }
+
+            log.info("UserDetails: {}", userDetails);
+            log.info("Authorities: {}", userDetails.getAuthorities());
 
             if (jwtUtil.validateToken(jwt, userDetails)) {
-
-                UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(
+                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                         userDetails, null, userDetails.getAuthorities());
-                usernamePasswordAuthenticationToken
-                        .setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
+                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                SecurityContextHolder.getContext().setAuthentication(authToken);
+                log.info("Authentication successful for user: {}", username);
+            } else {
+                log.error("JWT validation failed for user: {}", username);
             }
+           
         }
         chain.doFilter(request, response);
     }

@@ -18,4 +18,6 @@ public class LoginRequest {
     @NotEmpty(message = ValidateConstant.PASSWORD_NOT_EMPTY)
     @NotNull(message = ValidateConstant.USER_NAME_NOT_NULL)
     private String password;
+
+    private boolean ldap; // Thêm trường checkbox LDAP
 }
